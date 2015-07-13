@@ -42,7 +42,7 @@ steps.per.day <- aggregate(steps ~ date, activity, sum, na.rm=TRUE)
 library(ggplot2)
 histogram <- ggplot(data=steps.per.day, aes(x=date, y=steps))
 histogram <- histogram + geom_histogram(stat="identity")
-histogram <- histogram + theme(text = element_text(size=10),axis.text.x = element_text(angle=90, vjust=1))
+histogram <- histogram + theme(text = element_text(size=10),axis.text.x = element_text(angle=90))
 histogram
 ```
 
@@ -64,7 +64,7 @@ Let's look now at the activity pattern during a day. In order to do this, we ave
 
 
 ```r
-steps.per.time.of.day <- aggregate(steps ~ interval, activity, sum, na.rm=TRUE)
+steps.per.time.of.day <- aggregate(steps ~ interval, activity, mean, na.rm=TRUE)
 max.steps <- max(steps.per.time.of.day$steps)
 max.steps.interval <- steps.per.time.of.day[steps.per.time.of.day$steps == max.steps,1]
 day.pattern <- ggplot(data=steps.per.time.of.day, aes(x=interval, y=steps))
@@ -77,7 +77,7 @@ day.pattern
 
 ![plot of chunk daily.pattern](figure/daily.pattern-1.png) 
 
-The maximum value of average steps across all days is 10927, which happens at 08:35.
+The maximum value of average steps across all days is 206.17, which happens at 08:35.
 
 ## Imputing missing values
 
@@ -102,13 +102,24 @@ total.mean.per.day.filled.in <- mean(steps.per.day.filled.in$steps)
 total.median.per.day.filled.in <- median(steps.per.day.filled.in$steps)
 histogram2 <- ggplot(data=steps.per.day.filled.in, aes(x=date, y=steps))
 histogram2 <- histogram + geom_histogram(stat="identity")
-histogram2 <- histogram + theme(text = element_text(size=10),axis.text.x = element_text(angle=90, vjust=1))
+histogram2 <- histogram + theme(text = element_text(size=10),axis.text.x = element_text(angle=90))
 histogram2
 ```
 
 ![plot of chunk steps.per.day.filled.in](figure/steps.per.day.filled.in-1.png) 
 
-The result of the new calculation returns a value of 21133.63 mean steps taken per day, and 10890 as the value of the median per day. This is a significant difference from the values obtained without taking care of the missing values (49.06% difference for the mean).
+The result of the new calculation returns a value of 10766.19 mean steps taken per day, and 10765.59 as the value of the median per day. As expected, the mean is the same since new values have the same value as the mean. The median has changed and it is no longer an integer value, since the mean values that have been added were not rounded to integers. The difference doesn't seem noticeable if we look at the total number of steps either. After looking a bit more into the missing values, it seems that they all correspond to complete missing days (2012-10-01, 2012-10-08, 2012-11-01, 2012-11-04, 2012-11-09, 2012-11-10, 2012-11-14, 2012-11-30). It can be checked with the following code, which returns the number of non NA values for the dates with any NA value (should return 0):
+
+
+```r
+sum(!is.na(activity[activity$date %in% unique(activity[is.na(activity$steps),]$date),1]))
+```
+
+```
+## [1] 0
+```
+
+This explains why there is no impact in the mean values.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
@@ -116,8 +127,8 @@ Let's compare the daily pattern of weekdays with that of the weekend.
 
 
 ```r
-activity.filled.in$isWeekend <- as.POSIXlt(activity.filled.in$datetime)$wday %in% c(0,6)
-act.final <- aggregate(steps ~ interval + isWeekend, data=activity.filled.in, FUN=mean)
+activity$isWeekend <- as.POSIXlt(activity$datetime)$wday %in% c(0,6)
+act.final <- aggregate(steps ~ interval + isWeekend, data=activity, FUN=mean)
 day.pattern2 <- ggplot(data=act.final, aes(x=interval, y=steps, color=isWeekend))
 day.pattern2 <- day.pattern2 + geom_line()
 day.pattern2 <- day.pattern2 + scale_x_discrete(breaks=day.breaks,labels=day.breaks.time)
@@ -126,4 +137,4 @@ day.pattern2
 
 ![plot of chunk steps.per.weekday.weekend](figure/steps.per.weekday.weekend-1.png) 
 
-Apparently, there is less activity during the weekends. Specially the peaks int the early morning and late afternoon seem missing during the weekends. That could indicate that the mean of transportation to the weekdays activity is walking.
+There are clear differences in the patterns, as it would have been expected. There is a higher activity earlier in the morning during the weekdays and a overall higher activity later in the day during weekends, which seems reasonable.
