@@ -89,7 +89,7 @@ In order to improve the accuracy of the results, we will replace each missing va
 ```r
 activity.filled.in <- transform(activity, 
                       steps = ifelse(is.na(steps), 
-                                     steps.per.time.of.day[steps.per.time.of.day$interval==interval,2], 
+                                     steps.per.time.of.day[1+(seconds/300),2], 
                                      steps))
 ```
 
@@ -97,18 +97,20 @@ Now we look at the total number of steps per day again to see if there are any d
 
 
 ```r
-steps.per.day.filled.in <- aggregate(steps ~ date, activity.filled.in, sum, na.rm=TRUE)
+steps.per.day.filled.in <- aggregate(steps ~ date, activity.filled.in, sum)
 total.mean.per.day.filled.in <- mean(steps.per.day.filled.in$steps)
 total.median.per.day.filled.in <- median(steps.per.day.filled.in$steps)
 histogram2 <- ggplot(data=steps.per.day.filled.in, aes(x=date, y=steps))
-histogram2 <- histogram + geom_histogram(stat="identity")
-histogram2 <- histogram + theme(text = element_text(size=10),axis.text.x = element_text(angle=90))
+histogram2 <- histogram2 + geom_histogram(stat="identity")
+histogram2 <- histogram2 + theme(text = element_text(size=10),axis.text.x = element_text(angle=90))
 histogram2
 ```
 
 ![plot of chunk steps.per.day.filled.in](figure/steps.per.day.filled.in-1.png) 
 
-The result of the new calculation returns a value of 10766.19 mean steps taken per day, and 10765.59 as the value of the median per day. As expected, the mean is the same since new values have the same value as the mean. The median has changed and it is no longer an integer value, since the mean values that have been added were not rounded to integers. The difference doesn't seem noticeable if we look at the total number of steps either. After looking a bit more into the missing values, it seems that they all correspond to complete missing days (2012-10-01, 2012-10-08, 2012-11-01, 2012-11-04, 2012-11-09, 2012-11-10, 2012-11-14, 2012-11-30). It can be checked with the following code, which returns the number of non NA values for the dates with any NA value (should return 0):
+The result of the new calculation returns a value of 10766.19 mean steps taken per day, and 10766.19 as the value of the median per day. As expected, the mean is the same since new values have the same value as the mean. The median has changed a bit (it should have moved towards the mean) since there are now more days with the same value as the mean value. The difference doesn't seem noticeable if we look at the total number of steps either. After looking a bit more into the missing values, it seems that they all correspond to complete missing days (2012-10-01, 2012-10-08, 2012-11-01, 2012-11-04, 2012-11-09, 2012-11-10, 2012-11-14, 2012-11-30).
+
+It can be checked with the following code, which returns the number of non NA values for the dates with any NA value (should return 0):
 
 
 ```r
@@ -119,11 +121,11 @@ sum(!is.na(activity[activity$date %in% unique(activity[is.na(activity$steps),]$d
 ## [1] 0
 ```
 
-This explains why there is no impact in the mean values.
+This explains why there is relevant impact in the summarized values, even though the number of missing values seems significant.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-Let's compare the daily pattern of weekdays with that of the weekend.
+Let's compare the daily pattern of weekdays with that of the weekend. We use the original data, since the filling-in in the previous section didn't take into account weekends and it could therefore mislead the results.
 
 
 ```r
