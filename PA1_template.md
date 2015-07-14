@@ -40,10 +40,7 @@ To calculate this, we first need to compute the number of steps per day, using e
 ```r
 steps.per.day <- aggregate(steps ~ date, activity, sum, na.rm=TRUE)
 library(ggplot2)
-histogram <- ggplot(data=steps.per.day, aes(x=date, y=steps))
-histogram <- histogram + geom_histogram(stat="identity")
-histogram <- histogram + theme(text = element_text(size=10),axis.text.x = element_text(angle=90))
-histogram
+ggplot(data=steps.per.day, aes(x=steps)) + geom_histogram(binwidth = 3000)
 ```
 
 ![plot of chunk steps.per.day](figure/steps.per.day-1.png) 
@@ -100,13 +97,12 @@ Now we look at the total number of steps per day again to see if there are any d
 steps.per.day.filled.in <- aggregate(steps ~ date, activity.filled.in, sum)
 total.mean.per.day.filled.in <- mean(steps.per.day.filled.in$steps)
 total.median.per.day.filled.in <- median(steps.per.day.filled.in$steps)
-histogram2 <- ggplot(data=steps.per.day.filled.in, aes(x=date, y=steps))
-histogram2 <- histogram2 + geom_histogram(stat="identity")
-histogram2 <- histogram2 + theme(text = element_text(size=10),axis.text.x = element_text(angle=90))
-histogram2
+ggplot(data=steps.per.day.filled.in, aes(x=steps)) + geom_histogram(binwidth = 3000)
 ```
 
 ![plot of chunk steps.per.day.filled.in](figure/steps.per.day.filled.in-1.png) 
+
+The new histogram shows a difference in that now we see several days more with a total number of steps equal to the mean value. The rest of the graph is exactly the same.
 
 The result of the new calculation returns a value of 10766.19 mean steps taken per day, and 10766.19 as the value of the median per day. As expected, the mean is the same since new values have the same value as the mean. The median has changed a bit (it should have moved towards the mean) since there are now more days with the same value as the mean value. The difference doesn't seem noticeable if we look at the total number of steps either. After looking a bit more into the missing values, it seems that they all correspond to complete missing days (2012-10-01, 2012-10-08, 2012-11-01, 2012-11-04, 2012-11-09, 2012-11-10, 2012-11-14, 2012-11-30).
 
