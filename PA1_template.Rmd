@@ -111,9 +111,11 @@ Let's compare the daily pattern of weekdays with that of the weekend. We use the
 
 ```{r steps.per.weekday.weekend}
 activity$isWeekend <- as.POSIXlt(activity$datetime)$wday %in% c(0,6)
+activity$isWeekend <- ifelse(activity$isWeekend, "Weekend", "Weekday")
 act.final <- aggregate(steps ~ interval + isWeekend, data=activity, FUN=mean)
-day.pattern2 <- ggplot(data=act.final, aes(x=interval, y=steps, color=isWeekend))
+day.pattern2 <- ggplot(data=act.final, aes(x=interval, y=steps))
 day.pattern2 <- day.pattern2 + geom_line()
+day.pattern2 <- day.pattern2 + facet_grid(. ~ isWeekend)
 day.pattern2 <- day.pattern2 + scale_x_discrete(breaks=day.breaks,labels=day.breaks.time)
 day.pattern2
 ```
